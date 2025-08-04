@@ -6,8 +6,10 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from flask import Flask, send_from_directory, jsonify
 from flask_cors import CORS
 from src.models.user import db
+from src.models.profile import StyleProfile, WardrobeItem, OutfitHistory, QuickStyleQuiz
 from src.routes.user import user_bp
 from src.routes.auth import auth_bp
+from src.routes.profile import profile_bp
 
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
 
@@ -22,6 +24,7 @@ CORS(app, origins="*", methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
 # Register blueprints
 app.register_blueprint(auth_bp, url_prefix='/api/auth')
 app.register_blueprint(user_bp, url_prefix='/api')
+app.register_blueprint(profile_bp, url_prefix='/api/profile')
 
 # Initialize database
 db.init_app(app)
@@ -39,9 +42,11 @@ def health_check():
         'service': 'Tanvi Vanity Agent - User Management',
         'tagline': 'We girls have no time - system is running fast!',
         'version': '1.0.0',
+        'phase': 'WS1-P2: Enhanced Profile Features',
         'endpoints': {
             'auth': '/api/auth/*',
             'users': '/api/*',
+            'profiles': '/api/profile/*',
             'health': '/api/health'
         }
     }), 200
@@ -54,24 +59,27 @@ def service_info():
     return jsonify({
         'service_name': 'User Management Service',
         'tagline': 'We girls have no time - quick user management for busy lifestyles!',
-        'description': 'Authentication and user profile management for Tanvi Vanity Agent',
+        'description': 'Authentication and enhanced profile management for Tanvi Vanity Agent',
         'workstream': 'WS1: User Management & Authentication',
-        'phase': 'P1: Foundation Sprint',
-        'features': [
-            'Quick user registration with smart defaults',
-            'Fast authentication with JWT tokens',
-            'Streamlined profile management',
-            'Privacy-focused user preferences',
-            'Session management and security',
-            'Quick setup for AI styling'
+        'phase': 'P2: Enhanced Profile Features',
+        'new_features': [
+            'Comprehensive style profiling with quick setup',
+            '2-minute style quiz for instant personalization',
+            'Smart wardrobe cataloging and tracking',
+            'Outfit history with AI learning feedback',
+            'Quick style recommendations based on personality',
+            'Enhanced user analytics and insights'
         ],
         'api_endpoints': {
+            # Authentication endpoints (from P1)
             'POST /api/auth/register': 'Quick user registration',
             'POST /api/auth/login': 'Fast user login',
             'POST /api/auth/logout': 'Secure logout',
             'POST /api/auth/verify-token': 'Token verification',
             'POST /api/auth/refresh-token': 'Token refresh',
             'POST /api/auth/quick-setup': 'Streamlined profile setup',
+            
+            # User management endpoints (from P1)
             'GET /api/profile': 'Get user profile',
             'PUT /api/profile': 'Update user profile',
             'GET /api/preferences': 'Get styling preferences',
@@ -79,8 +87,77 @@ def service_info():
             'GET /api/sessions': 'Get active sessions',
             'DELETE /api/sessions/<id>': 'Terminate session',
             'GET /api/quick-stats': 'Get account statistics',
-            'POST /api/deactivate': 'Deactivate account'
+            'POST /api/deactivate': 'Deactivate account',
+            
+            # Enhanced profile endpoints (NEW in P2)
+            'GET /api/profile/style-profile': 'Get comprehensive style profile',
+            'PUT /api/profile/style-profile': 'Update style profile',
+            'POST /api/profile/quick-style-quiz': 'Take 2-minute style quiz',
+            'GET /api/profile/wardrobe': 'Get wardrobe items',
+            'POST /api/profile/wardrobe': 'Add wardrobe item',
+            'PUT /api/profile/wardrobe/<id>': 'Update wardrobe item',
+            'POST /api/profile/wardrobe/<id>/worn': 'Mark item as worn',
+            'GET /api/profile/outfit-history': 'Get outfit history',
+            'POST /api/profile/outfit-history': 'Log new outfit',
+            'POST /api/profile/outfit-history/<id>/rate': 'Rate outfit for AI learning'
         }
+    }), 200
+
+@app.route('/api/features', methods=['GET'])
+def feature_overview():
+    """
+    Overview of WS1-P2 enhanced features
+    """
+    return jsonify({
+        'phase': 'WS1-P2: Enhanced Profile Features',
+        'tagline': 'We girls have no time - advanced profiling made simple!',
+        'key_features': {
+            'style_profiling': {
+                'description': 'Comprehensive style personality analysis',
+                'benefits': [
+                    'Body type and measurement tracking',
+                    'Color analysis and seasonal recommendations',
+                    'Style personality identification',
+                    'Occasion-based style preferences'
+                ],
+                'time_to_complete': '5 minutes for full profile'
+            },
+            'quick_style_quiz': {
+                'description': '2-minute style assessment for instant AI training',
+                'benefits': [
+                    'Rapid style personality discovery',
+                    'Immediate personalized recommendations',
+                    'Visual preference learning',
+                    'Lifestyle-based customization'
+                ],
+                'time_to_complete': '2 minutes maximum'
+            },
+            'smart_wardrobe': {
+                'description': 'Intelligent wardrobe cataloging and tracking',
+                'benefits': [
+                    'Quick item entry with smart defaults',
+                    'Wear frequency tracking',
+                    'Outfit history and success analysis',
+                    'Wardrobe gap identification'
+                ],
+                'time_to_complete': '30 seconds per item'
+            },
+            'ai_learning': {
+                'description': 'Continuous learning from user feedback',
+                'benefits': [
+                    'Outfit success tracking',
+                    'Preference refinement over time',
+                    'Personalized style evolution',
+                    'Context-aware recommendations'
+                ],
+                'time_to_complete': '10 seconds per feedback'
+            }
+        },
+        'integration_ready': [
+            'WS2: AI-Powered Styling Engine',
+            'WS3: Computer Vision & Wardrobe',
+            'WS6: Mobile Application & UX'
+        ]
     }), 200
 
 @app.errorhandler(404)
@@ -110,8 +187,9 @@ def serve(path):
     if static_folder_path is None:
         return jsonify({
             'service': 'Tanvi Vanity Agent - User Management API',
-            'tagline': 'We girls have no time - this is the API service!',
+            'tagline': 'We girls have no time - this is the enhanced API service!',
             'message': 'This is a backend API service. Use /api/info for endpoint information.',
+            'phase': 'WS1-P2: Enhanced Profile Features',
             'frontend_note': 'Frontend will be served from the mobile app workstream'
         }), 200
 
@@ -124,16 +202,20 @@ def serve(path):
         else:
             return jsonify({
                 'service': 'Tanvi Vanity Agent - User Management API',
-                'tagline': 'We girls have no time - this is the API service!',
-                'message': 'This is a backend API service. Use /api/info for endpoint information.'
+                'tagline': 'We girls have no time - this is the enhanced API service!',
+                'message': 'This is a backend API service. Use /api/info for endpoint information.',
+                'phase': 'WS1-P2: Enhanced Profile Features'
             }), 200
 
 
 if __name__ == '__main__':
     print("🌟 Starting Tanvi Vanity Agent - User Management Service")
     print("💫 Tagline: 'We girls have no time' - Quick user management for busy lifestyles!")
-    print("🚀 Service running on http://0.0.0.0:5000")
-    print("📚 API documentation: http://0.0.0.0:5000/api/info")
+    print("🚀 Phase: WS1-P2 Enhanced Profile Features")
+    print("✨ New Features: Style profiling, 2-min quiz, smart wardrobe, AI learning")
+    print("🚀 Service running on http://0.0.0.0:5001")
+    print("📚 API documentation: http://0.0.0.0:5001/api/info")
+    print("🎯 Feature overview: http://0.0.0.0:5001/api/features")
     
     app.run(host='0.0.0.0', port=5001, debug=True)
 

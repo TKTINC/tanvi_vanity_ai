@@ -38,6 +38,12 @@ class User(db.Model):
     allow_social_sharing = db.Column(db.Boolean, default=False)
     marketing_consent = db.Column(db.Boolean, default=False)
 
+    # Relationships to profile models (defined after models are imported)
+    style_profile = db.relationship('StyleProfile', backref='user', uselist=False, lazy=True)
+    wardrobe_items = db.relationship('WardrobeItem', backref='user', lazy=True)
+    outfit_history = db.relationship('OutfitHistory', backref='user', lazy=True)
+    style_quizzes = db.relationship('QuickStyleQuiz', backref='user', lazy=True)
+
     def __repr__(self):
         return f'<User {self.username}>'
 
@@ -197,4 +203,8 @@ class UserPreference(db.Model):
             'notification_frequency': self.notification_frequency,
             'updated_at': self.updated_at.isoformat()
         }
+
+
+# Import profile models after User model is defined to avoid circular imports
+from src.models.profile import StyleProfile, WardrobeItem, OutfitHistory, QuickStyleQuiz
 

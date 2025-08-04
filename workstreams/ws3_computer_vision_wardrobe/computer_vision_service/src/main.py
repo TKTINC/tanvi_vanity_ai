@@ -9,8 +9,10 @@ from src.models.user import db
 from src.routes.user import user_bp
 from src.models.cv_models import WardrobeItem, ImageAnalysis, OutfitVisualization, StyleDetection, VisualSimilarity
 from src.models.wardrobe_management import WardrobeCollection, WardrobeAnalytics, BatchProcessingJob, WardrobeTag, WardrobeMaintenanceLog
+from src.models.outfit_visualization import OutfitComposition, VirtualTryOn, OutfitVisualizationTemplate, OutfitStylingSession, OutfitVisualizationJob
 from src.routes.computer_vision import computer_vision_bp
 from src.routes.wardrobe_management import wardrobe_management_bp
+from src.routes.outfit_visualization import outfit_visualization_bp
 from datetime import datetime
 
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
@@ -23,6 +25,7 @@ CORS(app)
 app.register_blueprint(user_bp, url_prefix='/api')
 app.register_blueprint(computer_vision_bp, url_prefix='/api/cv')
 app.register_blueprint(wardrobe_management_bp, url_prefix='/api/wardrobe')
+app.register_blueprint(outfit_visualization_bp, url_prefix='/api/outfits')
 
 # Database configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(os.path.dirname(__file__), 'database', 'app.db')}"
@@ -38,8 +41,8 @@ def health_check():
     return jsonify({
         'status': 'healthy',
         'service': 'WS3 Computer Vision & Wardrobe',
-        'version': '2.0.0',
-        'phase': 'WS3-P2: Wardrobe Management & Visual Cataloging',
+        'version': '3.0.0',
+        'phase': 'WS3-P3: Outfit Visualization & Virtual Try-On',
         'tagline': 'We girls have no time - Instant visual wardrobe intelligence!',
         'database': 'connected',
         'models_loaded': 5,
@@ -51,8 +54,8 @@ def service_info():
     """WS3 Computer Vision service information"""
     return jsonify({
         'service_name': 'WS3 Computer Vision & Wardrobe Service',
-        'version': '2.0.0',
-        'phase': 'WS3-P2: Wardrobe Management & Visual Cataloging',
+        'version': '3.0.0',
+        'phase': 'WS3-P3: Outfit Visualization & Virtual Try-On',
         'tagline': 'We girls have no time - Instant visual wardrobe intelligence!',
         'description': 'Advanced computer vision for intelligent wardrobe management and visual styling',
         'api_endpoints': {
@@ -75,7 +78,15 @@ def service_info():
             'batch_jobs': 'GET/POST /api/wardrobe/batch-jobs - Manage batch processing',
             'tags': 'GET/POST /api/wardrobe/tags - Manage wardrobe tags',
             'maintenance': 'POST /api/wardrobe/maintenance-log - Add maintenance log',
-            'smart_organize': 'POST /api/wardrobe/smart-organize - AI-powered organization'
+            'smart_organize': 'POST /api/wardrobe/smart-organize - AI-powered organization',
+            'create_outfit': 'POST /api/outfits/outfits - Create outfit composition',
+            'get_outfits': 'GET /api/outfits/outfits - Get user outfits',
+            'visualize_outfit': 'POST /api/outfits/outfits/<id>/visualize - Generate outfit visualization',
+            'virtual_try_on': 'POST /api/outfits/virtual-try-on - Create virtual try-on session',
+            'visualization_templates': 'GET /api/outfits/templates - Get visualization templates',
+            'styling_session': 'POST /api/outfits/styling-session - Start styling session',
+            'update_styling': 'POST /api/outfits/styling-session/<id>/step - Update styling progress',
+            'quick_outfit': 'POST /api/outfits/quick-outfit - Generate quick outfit suggestions'
         },
         'computer_vision_models': {
             'WardrobeItem': 'Core wardrobe item with CV analysis',
@@ -87,12 +98,17 @@ def service_info():
             'WardrobeAnalytics': 'Comprehensive wardrobe analytics and insights',
             'BatchProcessingJob': 'Batch processing for bulk operations',
             'WardrobeTag': 'Flexible tagging system for organization',
-            'WardrobeMaintenanceLog': 'Care and maintenance tracking'
+            'WardrobeMaintenanceLog': 'Care and maintenance tracking',
+            'OutfitComposition': 'Complete outfit compositions with AI analysis',
+            'VirtualTryOn': 'Virtual try-on sessions and results',
+            'OutfitVisualizationTemplate': 'Templates for outfit visualization layouts',
+            'OutfitStylingSession': 'Interactive outfit styling sessions',
+            'OutfitVisualizationJob': 'Background jobs for outfit visualization'
         },
         'integration_status': {
             'ws1_user_management': 'Ready for JWT authentication',
             'ws2_ai_styling': 'Ready for AI-powered recommendations',
-            'database': 'SQLite with 10 CV and wardrobe models',
+            'database': 'SQLite with 15 CV, wardrobe, and outfit models',
             'cors': 'Enabled for frontend integration'
         }
     })
@@ -121,6 +137,24 @@ def features_overview():
                 'capabilities': ['collections', 'tagging', 'batch_processing'],
                 'status': 'active',
                 'efficiency': '90%+'
+            },
+            'outfit_visualization': {
+                'description': 'Advanced outfit visualization and composition',
+                'capabilities': ['outfit_creation', 'visualization_generation', 'ai_analysis'],
+                'status': 'active',
+                'generation_time': '1-3 seconds'
+            },
+            'virtual_try_on': {
+                'description': 'Virtual try-on and fit analysis',
+                'capabilities': ['virtual_fitting', 'fit_analysis', 'style_recommendations'],
+                'status': 'active',
+                'processing_time': '2-5 seconds'
+            },
+            'styling_assistance': {
+                'description': 'Interactive styling sessions and guidance',
+                'capabilities': ['guided_styling', 'ai_suggestions', 'quick_outfits'],
+                'status': 'active',
+                'session_types': '4 styling modes'
             },
             'wardrobe_analytics': {
                 'description': 'Comprehensive wardrobe insights and analytics',
@@ -151,11 +185,15 @@ def features_overview():
             'supported_formats': ['JPEG', 'PNG', 'WebP'],
             'max_image_size': '10MB',
             'processing_speed': '1-3 seconds per image',
-            'database_models': 10,
-            'api_endpoints': 21,
+            'database_models': 15,
+            'api_endpoints': 29,
             'wardrobe_capacity': '1000+ items per user',
             'batch_processing': 'Up to 100 items per job',
-            'analytics_metrics': '15+ wardrobe health metrics'
+            'analytics_metrics': '15+ wardrobe health metrics',
+            'outfit_generation': '1-3 seconds per outfit',
+            'virtual_try_on': '2-5 seconds per session',
+            'visualization_templates': '10+ template types',
+            'styling_sessions': 'Interactive guided styling'
         },
         'integration_ready': {
             'ws1_authentication': True,

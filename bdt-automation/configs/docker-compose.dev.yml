@@ -1,0 +1,264 @@
+version: '3.8'
+
+# Tanvi Vanity AI - Local Development Docker Compose
+# BDT-P1: Complete containerized local development environment
+
+services:
+  # Database Services
+  postgres:
+    image: postgres:15-alpine
+    container_name: tanvi-postgres-dev
+    environment:
+      POSTGRES_DB: tanvi_local
+      POSTGRES_USER: tanvi_dev
+      POSTGRES_PASSWORD: dev_password
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    networks:
+      - tanvi-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tanvi_dev -d tanvi_local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: tanvi-redis-dev
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - tanvi-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # WS1: User Management Service
+  ws1-user-management:
+    build:
+      context: ./workstreams/ws1_user_management
+      dockerfile: Dockerfile.dev
+    container_name: tanvi-ws1-dev
+    environment:
+      - FLASK_ENV=development
+      - DATABASE_URL=postgresql://tanvi_dev:dev_password@postgres:5432/tanvi_local
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET_KEY=local_dev_secret_key
+    ports:
+      - "5001:5000"
+    volumes:
+      - ./workstreams/ws1_user_management:/app
+      - ./logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - tanvi-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # WS2: AI Styling Engine Service
+  ws2-ai-styling:
+    build:
+      context: ./workstreams/ws2_ai_styling_engine
+      dockerfile: Dockerfile.dev
+    container_name: tanvi-ws2-dev
+    environment:
+      - FLASK_ENV=development
+      - DATABASE_URL=postgresql://tanvi_dev:dev_password@postgres:5432/tanvi_local
+      - REDIS_URL=redis://redis:6379
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    ports:
+      - "5002:5000"
+    volumes:
+      - ./workstreams/ws2_ai_styling_engine:/app
+      - ./logs:/app/logs
+      - ./models:/app/models
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - tanvi-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # WS3: Computer Vision Service
+  ws3-computer-vision:
+    build:
+      context: ./workstreams/ws3_computer_vision_wardrobe
+      dockerfile: Dockerfile.dev
+    container_name: tanvi-ws3-dev
+    environment:
+      - FLASK_ENV=development
+      - DATABASE_URL=postgresql://tanvi_dev:dev_password@postgres:5432/tanvi_local
+      - REDIS_URL=redis://redis:6379
+    ports:
+      - "5003:5000"
+    volumes:
+      - ./workstreams/ws3_computer_vision_wardrobe:/app
+      - ./logs:/app/logs
+      - ./uploads:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - tanvi-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # WS4: Social Integration Service
+  ws4-social-integration:
+    build:
+      context: ./workstreams/ws4_social_integration
+      dockerfile: Dockerfile.dev
+    container_name: tanvi-ws4-dev
+    environment:
+      - FLASK_ENV=development
+      - DATABASE_URL=postgresql://tanvi_dev:dev_password@postgres:5432/tanvi_local
+      - REDIS_URL=redis://redis:6379
+    ports:
+      - "5004:5000"
+    volumes:
+      - ./workstreams/ws4_social_integration:/app
+      - ./logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - tanvi-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # WS5: E-commerce Integration Service
+  ws5-ecommerce:
+    build:
+      context: ./workstreams/ws5_ecommerce_integration
+      dockerfile: Dockerfile.dev
+    container_name: tanvi-ws5-dev
+    environment:
+      - FLASK_ENV=development
+      - DATABASE_URL=postgresql://tanvi_dev:dev_password@postgres:5432/tanvi_local
+      - REDIS_URL=redis://redis:6379
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - RAZORPAY_KEY_SECRET=${RAZORPAY_KEY_SECRET}
+    ports:
+      - "5005:5000"
+    volumes:
+      - ./workstreams/ws5_ecommerce_integration:/app
+      - ./logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - tanvi-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # WS6: Frontend PWA (Development Server)
+  ws6-frontend:
+    build:
+      context: ./workstreams/ws6_mobile_app/tanvi_mobile_app
+      dockerfile: Dockerfile.dev
+    container_name: tanvi-ws6-dev
+    environment:
+      - NODE_ENV=development
+      - VITE_API_BASE_URL=http://localhost:5000
+      - VITE_WS1_URL=http://localhost:5001
+      - VITE_WS2_URL=http://localhost:5002
+      - VITE_WS3_URL=http://localhost:5003
+      - VITE_WS4_URL=http://localhost:5004
+      - VITE_WS5_URL=http://localhost:5005
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./workstreams/ws6_mobile_app/tanvi_mobile_app:/app
+      - /app/node_modules
+    depends_on:
+      - ws1-user-management
+      - ws2-ai-styling
+      - ws3-computer-vision
+      - ws4-social-integration
+      - ws5-ecommerce
+    networks:
+      - tanvi-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Development Tools
+  adminer:
+    image: adminer:4.8.1
+    container_name: tanvi-adminer-dev
+    ports:
+      - "8080:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+    depends_on:
+      - postgres
+    networks:
+      - tanvi-network
+
+  # Log aggregation for development
+  logspout:
+    image: gliderlabs/logspout:latest
+    container_name: tanvi-logspout-dev
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: syslog://logs:514
+    depends_on:
+      - ws1-user-management
+      - ws2-ai-styling
+      - ws3-computer-vision
+      - ws4-social-integration
+      - ws5-ecommerce
+    networks:
+      - tanvi-network
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  tanvi-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+

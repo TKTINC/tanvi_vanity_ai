@@ -7,9 +7,11 @@ from flask import Flask, send_from_directory, jsonify
 from flask_cors import CORS
 from src.models.user import db
 from src.models.profile import StyleProfile, WardrobeItem, OutfitHistory, QuickStyleQuiz
+from src.models.analytics import UserAnalytics, StyleInsights, UsagePattern, PersonalizationScore
 from src.routes.user import user_bp
 from src.routes.auth import auth_bp
 from src.routes.profile import profile_bp
+from src.routes.analytics import analytics_bp
 
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
 
@@ -25,6 +27,7 @@ CORS(app, origins="*", methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
 app.register_blueprint(auth_bp, url_prefix='/api/auth')
 app.register_blueprint(user_bp, url_prefix='/api')
 app.register_blueprint(profile_bp, url_prefix='/api/profile')
+app.register_blueprint(analytics_bp, url_prefix='/api/analytics')
 
 # Initialize database
 db.init_app(app)
@@ -42,11 +45,12 @@ def health_check():
         'service': 'Tanvi Vanity Agent - User Management',
         'tagline': 'We girls have no time - system is running fast!',
         'version': '1.0.0',
-        'phase': 'WS1-P2: Enhanced Profile Features',
+        'phase': 'WS1-P3: Advanced User Analytics',
         'endpoints': {
             'auth': '/api/auth/*',
             'users': '/api/*',
             'profiles': '/api/profile/*',
+            'analytics': '/api/analytics/*',
             'health': '/api/health'
         }
     }), 200
@@ -59,16 +63,16 @@ def service_info():
     return jsonify({
         'service_name': 'User Management Service',
         'tagline': 'We girls have no time - quick user management for busy lifestyles!',
-        'description': 'Authentication and enhanced profile management for Tanvi Vanity Agent',
+        'description': 'Authentication, profile management, and advanced analytics for Tanvi Vanity Agent',
         'workstream': 'WS1: User Management & Authentication',
-        'phase': 'P2: Enhanced Profile Features',
+        'phase': 'P3: Advanced User Analytics',
         'new_features': [
-            'Comprehensive style profiling with quick setup',
-            '2-minute style quiz for instant personalization',
-            'Smart wardrobe cataloging and tracking',
-            'Outfit history with AI learning feedback',
-            'Quick style recommendations based on personality',
-            'Enhanced user analytics and insights'
+            'Real-time user behavior analytics',
+            'AI-generated style insights and recommendations',
+            'Usage pattern recognition and optimization',
+            'Dynamic personalization scoring',
+            'Quick activity summaries and dashboards',
+            'Intelligent user action tracking'
         ],
         'api_endpoints': {
             # Authentication endpoints (from P1)
@@ -89,7 +93,7 @@ def service_info():
             'GET /api/quick-stats': 'Get account statistics',
             'POST /api/deactivate': 'Deactivate account',
             
-            # Enhanced profile endpoints (NEW in P2)
+            # Enhanced profile endpoints (from P2)
             'GET /api/profile/style-profile': 'Get comprehensive style profile',
             'PUT /api/profile/style-profile': 'Update style profile',
             'POST /api/profile/quick-style-quiz': 'Take 2-minute style quiz',
@@ -99,64 +103,90 @@ def service_info():
             'POST /api/profile/wardrobe/<id>/worn': 'Mark item as worn',
             'GET /api/profile/outfit-history': 'Get outfit history',
             'POST /api/profile/outfit-history': 'Log new outfit',
-            'POST /api/profile/outfit-history/<id>/rate': 'Rate outfit for AI learning'
+            'POST /api/profile/outfit-history/<id>/rate': 'Rate outfit for AI learning',
+            
+            # Advanced analytics endpoints (NEW in P3)
+            'GET /api/analytics/dashboard': 'Get analytics dashboard overview',
+            'GET /api/analytics/insights': 'Get AI-generated style insights',
+            'POST /api/analytics/insights/<id>/action': 'Interact with style insight',
+            'GET /api/analytics/patterns': 'Get usage patterns and behaviors',
+            'GET /api/analytics/personalization': 'Get personalization score and recommendations',
+            'GET /api/analytics/activity-summary': 'Get activity summary for date range',
+            'POST /api/analytics/track-action': 'Track user action for analytics'
         }
     }), 200
 
 @app.route('/api/features', methods=['GET'])
 def feature_overview():
     """
-    Overview of WS1-P2 enhanced features
+    Overview of WS1-P3 advanced analytics features
     """
     return jsonify({
-        'phase': 'WS1-P2: Enhanced Profile Features',
-        'tagline': 'We girls have no time - advanced profiling made simple!',
+        'phase': 'WS1-P3: Advanced User Analytics',
+        'tagline': 'We girls have no time - intelligent insights made instant!',
         'key_features': {
-            'style_profiling': {
-                'description': 'Comprehensive style personality analysis',
+            'real_time_analytics': {
+                'description': 'Live tracking of user behavior and engagement',
                 'benefits': [
-                    'Body type and measurement tracking',
-                    'Color analysis and seasonal recommendations',
-                    'Style personality identification',
-                    'Occasion-based style preferences'
+                    'Daily activity monitoring',
+                    'Session duration tracking',
+                    'Feature usage analytics',
+                    'Peak usage time identification'
                 ],
-                'time_to_complete': '5 minutes for full profile'
+                'response_time': 'Real-time updates'
             },
-            'quick_style_quiz': {
-                'description': '2-minute style assessment for instant AI training',
+            'ai_style_insights': {
+                'description': 'AI-generated personalized style recommendations',
                 'benefits': [
-                    'Rapid style personality discovery',
-                    'Immediate personalized recommendations',
-                    'Visual preference learning',
-                    'Lifestyle-based customization'
+                    'Wardrobe gap analysis',
+                    'Style evolution tracking',
+                    'Seasonal recommendations',
+                    'Actionable styling tips'
                 ],
-                'time_to_complete': '2 minutes maximum'
+                'response_time': 'Generated in seconds'
             },
-            'smart_wardrobe': {
-                'description': 'Intelligent wardrobe cataloging and tracking',
+            'usage_patterns': {
+                'description': 'Intelligent pattern recognition for UX optimization',
                 'benefits': [
-                    'Quick item entry with smart defaults',
-                    'Wear frequency tracking',
-                    'Outfit history and success analysis',
-                    'Wardrobe gap identification'
+                    'Morning vs evening usage patterns',
+                    'Weekend planning behaviors',
+                    'Feature preference identification',
+                    'Optimization suggestions'
                 ],
-                'time_to_complete': '30 seconds per item'
+                'response_time': 'Instant pattern analysis'
             },
-            'ai_learning': {
-                'description': 'Continuous learning from user feedback',
+            'personalization_scoring': {
+                'description': 'Dynamic scoring for adaptive user experience',
                 'benefits': [
-                    'Outfit success tracking',
-                    'Preference refinement over time',
-                    'Personalized style evolution',
-                    'Context-aware recommendations'
+                    'Profile completeness tracking',
+                    'Engagement level monitoring',
+                    'Satisfaction measurement',
+                    'UX adaptation recommendations'
                 ],
-                'time_to_complete': '10 seconds per feedback'
+                'response_time': 'Live score updates'
+            },
+            'quick_dashboards': {
+                'description': 'Instant overview of user activity and insights',
+                'benefits': [
+                    '7-day activity summaries',
+                    'Key metrics at a glance',
+                    'Priority insights display',
+                    'Personalization recommendations'
+                ],
+                'response_time': 'Sub-second loading'
             }
         },
+        'intelligence_features': {
+            'predictive_insights': 'AI predicts wardrobe needs and style evolution',
+            'behavioral_adaptation': 'System adapts to user preferences automatically',
+            'smart_recommendations': 'Context-aware suggestions based on usage patterns',
+            'efficiency_optimization': 'Identifies ways to save user time'
+        },
         'integration_ready': [
-            'WS2: AI-Powered Styling Engine',
-            'WS3: Computer Vision & Wardrobe',
-            'WS6: Mobile Application & UX'
+            'WS2: AI-Powered Styling Engine (analytics data ready)',
+            'WS3: Computer Vision & Wardrobe (usage patterns ready)',
+            'WS4: Social Integration (engagement metrics ready)',
+            'WS6: Mobile Application & UX (personalization scores ready)'
         ]
     }), 200
 
@@ -187,9 +217,15 @@ def serve(path):
     if static_folder_path is None:
         return jsonify({
             'service': 'Tanvi Vanity Agent - User Management API',
-            'tagline': 'We girls have no time - this is the enhanced API service!',
+            'tagline': 'We girls have no time - this is the intelligent API service!',
             'message': 'This is a backend API service. Use /api/info for endpoint information.',
-            'phase': 'WS1-P2: Enhanced Profile Features',
+            'phase': 'WS1-P3: Advanced User Analytics',
+            'new_capabilities': [
+                'Real-time behavior analytics',
+                'AI-generated style insights',
+                'Usage pattern recognition',
+                'Dynamic personalization scoring'
+            ],
             'frontend_note': 'Frontend will be served from the mobile app workstream'
         }), 200
 
@@ -202,20 +238,22 @@ def serve(path):
         else:
             return jsonify({
                 'service': 'Tanvi Vanity Agent - User Management API',
-                'tagline': 'We girls have no time - this is the enhanced API service!',
+                'tagline': 'We girls have no time - this is the intelligent API service!',
                 'message': 'This is a backend API service. Use /api/info for endpoint information.',
-                'phase': 'WS1-P2: Enhanced Profile Features'
+                'phase': 'WS1-P3: Advanced User Analytics'
             }), 200
 
 
 if __name__ == '__main__':
     print("🌟 Starting Tanvi Vanity Agent - User Management Service")
     print("💫 Tagline: 'We girls have no time' - Quick user management for busy lifestyles!")
-    print("🚀 Phase: WS1-P2 Enhanced Profile Features")
-    print("✨ New Features: Style profiling, 2-min quiz, smart wardrobe, AI learning")
+    print("🚀 Phase: WS1-P3 Advanced User Analytics")
+    print("🧠 New Features: Real-time analytics, AI insights, usage patterns, personalization scoring")
+    print("📊 Intelligence: Predictive insights, behavioral adaptation, smart recommendations")
     print("🚀 Service running on http://0.0.0.0:5001")
     print("📚 API documentation: http://0.0.0.0:5001/api/info")
     print("🎯 Feature overview: http://0.0.0.0:5001/api/features")
+    print("📊 Analytics dashboard: http://0.0.0.0:5001/api/analytics/dashboard")
     
     app.run(host='0.0.0.0', port=5001, debug=True)
 

@@ -2,7 +2,7 @@ import { useState, useEffect, useContext, createContext } from 'react'
 import { UserAPI, TokenManager } from '../services/api'
 
 // Auth Context
-const AuthContext = createContext()
+const AuthContext = createContext(null)
 
 // Auth Provider Component
 export function AuthProvider({ children }) {

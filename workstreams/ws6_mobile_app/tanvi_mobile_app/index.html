@@ -2,12 +2,316 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tanvi Vanity AI - We girls have no time</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#ec4899" />
+    <meta name="background-color" content="#ffffff" />
+    <meta name="display" content="standalone" />
+    <meta name="orientation" content="portrait-primary" />
+    
+    <!-- App Meta Tags -->
+    <title>Tanvi Vanity AI - We Girls Have No Time</title>
+    <meta name="description" content="AI-powered fashion styling and shopping app. Lightning-fast outfit recommendations, camera analysis, and social shopping experience." />
+    <meta name="keywords" content="fashion, AI, styling, shopping, outfit, camera, social, community, trends" />
+    <meta name="author" content="Tanvi Vanity AI" />
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- App Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-72x72.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-72x72.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192x192.png" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png" />
+    <link rel="apple-touch-icon" sizes="144x144" href="/icons/icon-144x144.png" />
+    <link rel="apple-touch-icon" sizes="120x120" href="/icons/icon-128x128.png" />
+    <link rel="apple-touch-icon" sizes="114x114" href="/icons/icon-128x128.png" />
+    <link rel="apple-touch-icon" sizes="76x76" href="/icons/icon-72x72.png" />
+    <link rel="apple-touch-icon" sizes="72x72" href="/icons/icon-72x72.png" />
+    <link rel="apple-touch-icon" sizes="60x60" href="/icons/icon-72x72.png" />
+    <link rel="apple-touch-icon" sizes="57x57" href="/icons/icon-72x72.png" />
+    
+    <!-- iOS Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Tanvi AI" />
+    <meta name="apple-touch-fullscreen" content="yes" />
+    
+    <!-- Android Meta Tags -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="Tanvi AI" />
+    
+    <!-- Microsoft Meta Tags -->
+    <meta name="msapplication-TileColor" content="#ec4899" />
+    <meta name="msapplication-TileImage" content="/icons/icon-144x144.png" />
+    <meta name="msapplication-config" content="/browserconfig.xml" />
+    
+    <!-- Social Media Meta Tags -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Tanvi Vanity AI - We Girls Have No Time" />
+    <meta property="og:description" content="AI-powered fashion styling and shopping app. Lightning-fast outfit recommendations, camera analysis, and social shopping experience." />
+    <meta property="og:image" content="/icons/icon-512x512.png" />
+    <meta property="og:url" content="https://tanvivanityai.com" />
+    <meta property="og:site_name" content="Tanvi Vanity AI" />
+    
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Tanvi Vanity AI - We Girls Have No Time" />
+    <meta name="twitter:description" content="AI-powered fashion styling and shopping app. Lightning-fast outfit recommendations, camera analysis, and social shopping experience." />
+    <meta name="twitter:image" content="/icons/icon-512x512.png" />
+    
+    <!-- Preload Critical Resources -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    
+    <!-- Security Headers -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta http-equiv="X-Frame-Options" content="DENY" />
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block" />
+    
+    <!-- Splash Screen Styles -->
+    <style>
+      /* PWA Splash Screen */
+      .pwa-splash {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        transition: opacity 0.5s ease-out;
+      }
+      
+      .pwa-splash.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+      
+      .pwa-splash-logo {
+        width: 120px;
+        height: 120px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 24px;
+        backdrop-filter: blur(10px);
+      }
+      
+      .pwa-splash-text {
+        color: white;
+        font-family: 'Inter', sans-serif;
+        font-size: 24px;
+        font-weight: 600;
+        margin-bottom: 8px;
+        text-align: center;
+      }
+      
+      .pwa-splash-tagline {
+        color: rgba(255, 255, 255, 0.8);
+        font-family: 'Inter', sans-serif;
+        font-size: 16px;
+        font-weight: 400;
+        text-align: center;
+      }
+      
+      .pwa-splash-spinner {
+        width: 32px;
+        height: 32px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-top: 3px solid white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-top: 32px;
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      
+      /* Hide default content during splash */
+      body.loading #root {
+        opacity: 0;
+      }
+    </style>
   </head>
-  <body>
+  <body class="loading">
+    <!-- PWA Splash Screen -->
+    <div id="pwa-splash" class="pwa-splash">
+      <div class="pwa-splash-logo">
+        <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <text x="30" y="42" text-anchor="middle" fill="white" font-family="serif" font-size="36" font-weight="600">T</text>
+        </svg>
+      </div>
+      <div class="pwa-splash-text">Tanvi Vanity AI</div>
+      <div class="pwa-splash-tagline">We girls have no time</div>
+      <div class="pwa-splash-spinner"></div>
+    </div>
+    
     <div id="root"></div>
+    
+    <!-- Service Worker Registration -->
+    <script>
+      // PWA Service Worker Registration
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('SW registered: ', registration);
+              
+              // Check for updates
+              registration.addEventListener('updatefound', () => {
+                const newWorker = registration.installing;
+                newWorker.addEventListener('statechange', () => {
+                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    // New content is available, prompt user to refresh
+                    if (confirm('New version available! Refresh to update?')) {
+                      window.location.reload();
+                    }
+                  }
+                });
+              });
+            })
+            .catch((registrationError) => {
+              console.log('SW registration failed: ', registrationError);
+            });
+        });
+      }
+      
+      // PWA Install Prompt
+      let deferredPrompt;
+      
+      window.addEventListener('beforeinstallprompt', (e) => {
+        console.log('PWA install prompt triggered');
+        e.preventDefault();
+        deferredPrompt = e;
+        
+        // Show custom install button after a delay
+        setTimeout(() => {
+          showInstallPrompt();
+        }, 10000); // Show after 10 seconds
+      });
+      
+      function showInstallPrompt() {
+        if (deferredPrompt && !window.matchMedia('(display-mode: standalone)').matches) {
+          const installBanner = document.createElement('div');
+          installBanner.innerHTML = `
+            <div style="
+              position: fixed;
+              bottom: 20px;
+              left: 20px;
+              right: 20px;
+              background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
+              color: white;
+              padding: 16px;
+              border-radius: 12px;
+              box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+              z-index: 1000;
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              font-family: 'Inter', sans-serif;
+            ">
+              <div>
+                <div style="font-weight: 600; margin-bottom: 4px;">Install Tanvi AI</div>
+                <div style="font-size: 14px; opacity: 0.9;">Add to home screen for the best experience</div>
+              </div>
+              <div>
+                <button onclick="installPWA()" style="
+                  background: rgba(255,255,255,0.2);
+                  border: none;
+                  color: white;
+                  padding: 8px 16px;
+                  border-radius: 8px;
+                  font-weight: 500;
+                  margin-right: 8px;
+                  cursor: pointer;
+                ">Install</button>
+                <button onclick="this.parentElement.parentElement.parentElement.remove()" style="
+                  background: none;
+                  border: none;
+                  color: white;
+                  padding: 8px;
+                  border-radius: 8px;
+                  cursor: pointer;
+                  opacity: 0.7;
+                ">✕</button>
+              </div>
+            </div>
+          `;
+          document.body.appendChild(installBanner);
+        }
+      }
+      
+      window.installPWA = async () => {
+        if (deferredPrompt) {
+          deferredPrompt.prompt();
+          const { outcome } = await deferredPrompt.userChoice;
+          console.log(`User response to the install prompt: ${outcome}`);
+          deferredPrompt = null;
+          
+          // Remove install banner
+          const banner = document.querySelector('[style*="position: fixed"]');
+          if (banner) banner.remove();
+        }
+      };
+      
+      // Hide splash screen when app loads
+      window.addEventListener('load', () => {
+        setTimeout(() => {
+          const splash = document.getElementById('pwa-splash');
+          const body = document.body;
+          
+          if (splash) {
+            splash.classList.add('hidden');
+            body.classList.remove('loading');
+            
+            setTimeout(() => {
+              splash.remove();
+            }, 500);
+          }
+        }, 1500); // Show splash for 1.5 seconds
+      });
+      
+      // PWA Display Mode Detection
+      window.addEventListener('DOMContentLoaded', () => {
+        if (window.matchMedia('(display-mode: standalone)').matches) {
+          console.log('Running as PWA');
+          document.body.classList.add('pwa-mode');
+        }
+      });
+      
+      // Prevent zoom on double tap (iOS)
+      let lastTouchEnd = 0;
+      document.addEventListener('touchend', function (event) {
+        const now = (new Date()).getTime();
+        if (now - lastTouchEnd <= 300) {
+          event.preventDefault();
+        }
+        lastTouchEnd = now;
+      }, false);
+      
+      // Handle PWA navigation
+      window.addEventListener('appinstalled', (evt) => {
+        console.log('PWA was installed');
+        // Track installation event
+        if (window.gtag) {
+          gtag('event', 'pwa_install', {
+            event_category: 'engagement',
+            event_label: 'PWA Installation'
+          });
+        }
+      });
+    </script>
+    
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

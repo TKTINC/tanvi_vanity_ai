@@ -7,6 +7,8 @@ from flask import Flask, send_from_directory, jsonify
 from flask_cors import CORS
 from src.models.ecommerce_models import db
 from src.routes.ecommerce_foundation import ecommerce_bp
+from src.routes.product_catalog import product_catalog_bp
+from src.routes.merchant_integration import merchant_integration_bp
 
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
 app.config['SECRET_KEY'] = 'tanvi_ecommerce_secret_key_2024'
@@ -16,6 +18,8 @@ CORS(app, origins="*")
 
 # Register blueprints
 app.register_blueprint(ecommerce_bp, url_prefix='/api')
+app.register_blueprint(product_catalog_bp, url_prefix='/api')
+app.register_blueprint(merchant_integration_bp, url_prefix='/api')
 
 # Database configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(os.path.dirname(__file__), 'database', 'app.db')}"

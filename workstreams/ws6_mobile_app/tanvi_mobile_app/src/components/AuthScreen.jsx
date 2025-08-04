@@ -16,11 +16,12 @@ import {
   Check,
   AlertCircle
 } from 'lucide-react'
+import { useAuth } from '../hooks/useAuth'
 
-export default function AuthScreen({ setCurrentUser }) {
+export default function AuthScreen() {
+  const { login, register, isLoading } = useAuth()
   const [isLogin, setIsLogin] = useState(true)
   const [showPassword, setShowPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -80,50 +81,20 @@ export default function AuthScreen({ setCurrentUser }) {
     
     if (!validateForm()) return
     
-    setIsLoading(true)
-    
     try {
-      // Simulate API call to WS1 User Management
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
+      let result
       if (isLogin) {
-        // Login simulation
-        const user = {
-          id: 1,
-          name: formData.firstName || 'Jane',
-          email: formData.email,
-          market: formData.market,
-          preferences: formData.preferences,
-          avatar: '👩',
-          joinedDate: '2024-01-15',
-          stylingScore: 92,
-          totalOutfits: 47,
-          totalPurchases: 23
-        }
-        setCurrentUser(user)
-        window.location.href = '/'
+        result = await login(formData.email, formData.password)
       } else {
-        // Registration simulation
-        const user = {
-          id: Date.now(),
-          name: `${formData.firstName} ${formData.lastName}`,
-          email: formData.email,
-          phone: formData.phone,
-          market: formData.market,
-          preferences: formData.preferences,
-          avatar: '👩',
-          joinedDate: new Date().toISOString().split('T')[0],
-          stylingScore: 0,
-          totalOutfits: 0,
-          totalPurchases: 0
-        }
-        setCurrentUser(user)
-        window.location.href = '/'
+        result = await register(formData)
       }
+      
+      if (!result.success) {
+        setErrors({ submit: result.error })
+      }
+      // Success is handled by the auth context and navigation
     } catch (error) {
-      setErrors({ submit: 'Authentication failed. Please try again.' })
-    } finally {
-      setIsLoading(false)
+      setErrors({ submit: 'An unexpected error occurred. Please try again.' })
     }
   }
 

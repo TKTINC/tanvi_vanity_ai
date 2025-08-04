@@ -9,76 +9,117 @@ import {
   Mail, 
   Phone, 
   MapPin, 
-  Settings,
+  Settings, 
+  Star,
+  Trophy,
+  Calendar,
+  Heart,
+  ShoppingBag,
+  Camera,
   Edit,
   Save,
   X,
-  Star,
-  ShoppingBag,
-  Sparkles,
-  TrendingUp,
-  Calendar,
-  Award,
   Bell,
   Shield,
   CreditCard,
+  MapPin as Address,
+  Sparkles,
+  TrendingUp,
+  Award,
   LogOut
 } from 'lucide-react'
+import { useAuth } from '../hooks/useAuth'
+import { UserAPI } from '../services/api'
 
 export default function ProfileScreen({ currentUser }) {
+  const { user, updateProfile, updatePreferences, logout } = useAuth()
   const [isEditing, setIsEditing] = useState(false)
-  const [editData, setEditData] = useState({})
-  const [userStats, setUserStats] = useState({})
+  const [isLoading, setIsLoading] = useState(false)
+  const [userStats, setUserStats] = useState(null)
   const [achievements, setAchievements] = useState([])
+  const [editData, setEditData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    market: 'US',
+    preferences: {
+      style: 'casual',
+      budget: 'medium',
+      notifications: true
+    }
+  })
 
+  // Initialize edit data when user changes
   useEffect(() => {
-    if (currentUser) {
+    if (user) {
       setEditData({
-        name: currentUser.name,
-        email: currentUser.email,
-        phone: currentUser.phone || '+1 (555) 123-4567',
-        market: currentUser.market,
-        preferences: currentUser.preferences || {
-          style: 'casual',
-          budget: 'medium',
-          notifications: true
+        name: user.name || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        market: user.market || 'US',
+        preferences: {
+          style: user.preferences?.style || 'casual',
+          budget: user.preferences?.budget || 'medium',
+          notifications: user.preferences?.notifications !== false
         }
       })
+    }
+  }, [user])
 
-      // Simulate loading user stats
-      setUserStats({
-        stylingScore: currentUser.stylingScore || 92,
-        totalOutfits: currentUser.totalOutfits || 47,
-        totalPurchases: currentUser.totalPurchases || 23,
-        timesSaved: 156,
-        favoriteStyle: 'Casual Chic',
-        joinedDate: currentUser.joinedDate || '2024-01-15',
-        level: 'Style Expert'
+  // Load user stats and achievements
+  useEffect(() => {
+    loadUserStats()
+    loadAchievements()
+  }, [])
+
+  const loadUserStats = async () => {
+    try {
+      const stats = await UserAPI.getUserStats()
+      setUserStats(stats)
+    } catch (error) {
+      console.error('Failed to load user stats:', error)
+    }
+  }
+
+  const loadAchievements = async () => {
+    try {
+      const achievementsList = await UserAPI.getAchievements()
+      setAchievements(achievementsList)
+    } catch (error) {
+      console.error('Failed to load achievements:', error)
+    }
+  }
+
+  const handleSaveProfile = async () => {
+    setIsLoading(true)
+    try {
+      const profileResult = await updateProfile({
+        name: editData.name,
+        email: editData.email,
+        phone: editData.phone,
+        market: editData.market
       })
 
-      setAchievements([
-        { id: 1, title: 'Style Starter', description: 'Created your first outfit', earned: true, icon: '🎯' },
-        { id: 2, title: 'Shopping Pro', description: 'Made 20+ purchases', earned: true, icon: '🛍️' },
-        { id: 3, title: 'AI Enthusiast', description: 'Used AI styling 50+ times', earned: true, icon: '🤖' },
-        { id: 4, title: 'Community Star', description: 'Shared 10+ outfits', earned: false, icon: '⭐' },
-        { id: 5, title: 'Fashion Guru', description: 'Reach 95% styling score', earned: false, icon: '👑' }
-      ])
+      const preferencesResult = await updatePreferences(editData.preferences)
+
+      if (profileResult.success && preferencesResult.success) {
+        setIsEditing(false)
+      }
+    } catch (error) {
+      console.error('Failed to update profile:', error)
+    } finally {
+      setIsLoading(false)
     }
-  }, [currentUser])
-
-  const handleSave = async () => {
-    // Simulate API call to WS1 User Management
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    setIsEditing(false)
-    // In real app, would update currentUser state
   }
 
-  const handleLogout = () => {
-    // Clear user session and redirect
-    window.location.href = '/auth'
+  const handleLogout = async () => {
+    await logout()
   }
 
-  if (!currentUser) {
+  // Use the user from auth context, fallback to currentUser prop
+  const displayUser = user || currentUser
+
+  if (!displayUser) {
     return (
       <div className="p-4 text-center">
         <div className="py-12">
@@ -96,26 +137,26 @@ export default function ProfileScreen({ currentUser }) {
   return (
     <div className="p-4 space-y-6">
       {/* Profile Header */}
-      <Card>
+      <Card className="bg-gradient-to-r from-pink-50 to-purple-50 border-pink-200">
         <CardContent className="pt-6">
           <div className="flex items-center space-x-4">
             <div className="w-16 h-16 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full flex items-center justify-center text-2xl">
-              {currentUser.avatar || '👩'}
+              {displayUser.avatar || '👩'}
             </div>
             <div className="flex-1">
-              <h2 className="text-xl font-bold text-gray-800">{currentUser.name}</h2>
-              <p className="text-gray-600">{currentUser.email}</p>
+              <h2 className="text-xl font-bold text-gray-800">{displayUser.name}</h2>
+              <p className="text-gray-600">{displayUser.email}</p>
               <div className="flex items-center space-x-2 mt-1">
-                <Badge variant="secondary" className="text-xs">
-                  {userStats.level}
+                <Badge variant="outline" className="text-xs">
+                  {displayUser.market === 'US' ? '🇺🇸 USA' : '🇮🇳 India'}
                 </Badge>
                 <Badge variant="outline" className="text-xs">
-                  {currentUser.market === 'US' ? '🇺🇸 USA' : '🇮🇳 India'}
+                  Member since {displayUser.joinedDate}
                 </Badge>
               </div>
             </div>
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={() => setIsEditing(!isEditing)}
             >
@@ -125,11 +166,45 @@ export default function ProfileScreen({ currentUser }) {
         </CardContent>
       </Card>
 
+      {/* User Stats */}
+      <div className="grid grid-cols-3 gap-3">
+        <Card className="text-center">
+          <CardContent className="pt-4">
+            <div className="text-2xl font-bold text-pink-600">
+              {userStats?.totalOutfits || displayUser.totalOutfits || 47}
+            </div>
+            <p className="text-xs text-gray-600">Outfits</p>
+          </CardContent>
+        </Card>
+        <Card className="text-center">
+          <CardContent className="pt-4">
+            <div className="text-2xl font-bold text-purple-600">
+              {userStats?.totalPurchases || displayUser.totalPurchases || 23}
+            </div>
+            <p className="text-xs text-gray-600">Purchases</p>
+          </CardContent>
+        </Card>
+        <Card className="text-center">
+          <CardContent className="pt-4">
+            <div className="flex items-center justify-center space-x-1">
+              <div className="text-2xl font-bold text-yellow-600">
+                {userStats?.stylingScore || displayUser.stylingScore || 92}
+              </div>
+              <Star className="w-4 h-4 text-yellow-500 fill-current" />
+            </div>
+            <p className="text-xs text-gray-600">Style Score</p>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Edit Profile Form */}
       {isEditing && (
         <Card>
           <CardHeader>
-            <CardTitle>Edit Profile</CardTitle>
+            <CardTitle className="flex items-center space-x-2">
+              <Edit className="w-5 h-5" />
+              <span>Edit Profile</span>
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
@@ -137,42 +212,59 @@ export default function ProfileScreen({ currentUser }) {
               <Input
                 id="name"
                 value={editData.name}
-                onChange={(e) => setEditData({...editData, name: e.target.value})}
+                onChange={(e) => setEditData(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="Enter your full name"
               />
             </div>
+
             <div>
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
                 value={editData.email}
-                onChange={(e) => setEditData({...editData, email: e.target.value})}
+                onChange={(e) => setEditData(prev => ({ ...prev, email: e.target.value }))}
+                placeholder="Enter your email"
               />
             </div>
+
             <div>
-              <Label htmlFor="phone">Phone</Label>
+              <Label htmlFor="phone">Phone Number</Label>
               <Input
                 id="phone"
+                type="tel"
                 value={editData.phone}
-                onChange={(e) => setEditData({...editData, phone: e.target.value})}
+                onChange={(e) => setEditData(prev => ({ ...prev, phone: e.target.value }))}
+                placeholder="+1 (555) 123-4567"
               />
             </div>
+
             <div>
-              <Label>Preferred Style</Label>
+              <Label htmlFor="market">Shopping Market</Label>
+              <select
+                id="market"
+                value={editData.market}
+                onChange={(e) => setEditData(prev => ({ ...prev, market: e.target.value }))}
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+              >
+                <option value="US">🇺🇸 United States</option>
+                <option value="IN">🇮🇳 India</option>
+              </select>
+            </div>
+
+            <div>
+              <Label>Style Preferences</Label>
               <div className="grid grid-cols-3 gap-2 mt-2">
                 {['casual', 'formal', 'trendy'].map((style) => (
                   <Button
                     key={style}
                     type="button"
-                    variant={editData.preferences?.style === style ? 'default' : 'outline'}
+                    variant={editData.preferences.style === style ? 'default' : 'outline'}
                     size="sm"
-                    onClick={() => setEditData({
-                      ...editData,
-                      preferences: {
-                        ...editData.preferences,
-                        style
-                      }
-                    })}
+                    onClick={() => setEditData(prev => ({
+                      ...prev,
+                      preferences: { ...prev.preferences, style }
+                    }))}
                     className="capitalize"
                   >
                     {style}
@@ -180,12 +272,65 @@ export default function ProfileScreen({ currentUser }) {
                 ))}
               </div>
             </div>
+
+            <div>
+              <Label>Budget Range</Label>
+              <div className="grid grid-cols-3 gap-2 mt-2">
+                {['low', 'medium', 'high'].map((budget) => (
+                  <Button
+                    key={budget}
+                    type="button"
+                    variant={editData.preferences.budget === budget ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setEditData(prev => ({
+                      ...prev,
+                      preferences: { ...prev.preferences, budget }
+                    }))}
+                    className="capitalize"
+                  >
+                    {budget}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="notifications"
+                checked={editData.preferences.notifications}
+                onChange={(e) => setEditData(prev => ({
+                  ...prev,
+                  preferences: { ...prev.preferences, notifications: e.target.checked }
+                }))}
+                className="rounded border-gray-300 text-pink-600 focus:ring-pink-500"
+              />
+              <Label htmlFor="notifications">Enable notifications</Label>
+            </div>
+
             <div className="flex space-x-2">
-              <Button onClick={handleSave} className="flex-1">
-                <Save className="w-4 h-4 mr-2" />
-                Save Changes
+              <Button
+                onClick={handleSaveProfile}
+                disabled={isLoading}
+                className="flex-1 bg-gradient-to-r from-pink-500 to-purple-600"
+              >
+                {isLoading ? (
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Saving...</span>
+                  </div>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 mr-2" />
+                    Save Changes
+                  </>
+                )}
               </Button>
-              <Button variant="outline" onClick={() => setIsEditing(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setIsEditing(false)}
+                disabled={isLoading}
+              >
                 Cancel
               </Button>
             </div>
@@ -193,81 +338,51 @@ export default function ProfileScreen({ currentUser }) {
         </Card>
       )}
 
-      {/* User Stats */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <TrendingUp className="w-5 h-5 text-green-500" />
-            <span>Your Fashion Stats</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="text-center p-4 bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg">
-              <div className="text-2xl font-bold text-pink-600 mb-1">{userStats.stylingScore}%</div>
-              <div className="text-sm text-gray-600">Styling Score</div>
-              <div className="flex items-center justify-center mt-1">
-                {[1,2,3,4,5].map((star) => (
-                  <Star 
-                    key={star} 
-                    className={`w-3 h-3 ${star <= Math.floor(userStats.stylingScore/20) ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} 
-                  />
-                ))}
-              </div>
-            </div>
-            <div className="text-center p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg">
-              <div className="text-2xl font-bold text-blue-600 mb-1">{userStats.totalOutfits}</div>
-              <div className="text-sm text-gray-600">Outfits Created</div>
-              <div className="text-xs text-blue-500 mt-1">+3 this week</div>
-            </div>
-            <div className="text-center p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg">
-              <div className="text-2xl font-bold text-green-600 mb-1">{userStats.totalPurchases}</div>
-              <div className="text-sm text-gray-600">Items Purchased</div>
-              <div className="text-xs text-green-500 mt-1">$1,247 saved</div>
-            </div>
-            <div className="text-center p-4 bg-gradient-to-r from-orange-50 to-red-50 rounded-lg">
-              <div className="text-2xl font-bold text-orange-600 mb-1">{userStats.timesSaved}m</div>
-              <div className="text-sm text-gray-600">Time Saved</div>
-              <div className="text-xs text-orange-500 mt-1">This month</div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Achievements */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
-            <Award className="w-5 h-5 text-yellow-500" />
+            <Trophy className="w-5 h-5 text-yellow-500" />
             <span>Achievements</span>
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
             {achievements.map((achievement) => (
-              <div 
-                key={achievement.id} 
-                className={`flex items-center space-x-3 p-3 rounded-lg ${
+              <div
+                key={achievement.id}
+                className={`p-3 rounded-lg border ${
                   achievement.earned 
-                    ? 'bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200' 
-                    : 'bg-gray-50 border border-gray-200'
+                    ? 'bg-yellow-50 border-yellow-200' 
+                    : 'bg-gray-50 border-gray-200'
                 }`}
               >
-                <div className={`text-2xl ${achievement.earned ? '' : 'grayscale opacity-50'}`}>
-                  {achievement.icon}
-                </div>
-                <div className="flex-1">
-                  <p className={`font-medium ${achievement.earned ? 'text-gray-800' : 'text-gray-500'}`}>
+                <div className="flex items-center space-x-2 mb-1">
+                  <span className="text-lg">{achievement.icon}</span>
+                  <span className={`text-sm font-medium ${
+                    achievement.earned ? 'text-gray-800' : 'text-gray-500'
+                  }`}>
                     {achievement.title}
-                  </p>
-                  <p className={`text-sm ${achievement.earned ? 'text-gray-600' : 'text-gray-400'}`}>
-                    {achievement.description}
-                  </p>
+                  </span>
                 </div>
-                {achievement.earned && (
-                  <Badge variant="secondary" className="text-xs bg-yellow-100 text-yellow-800">
-                    Earned
-                  </Badge>
+                <p className="text-xs text-gray-600">{achievement.description}</p>
+                {achievement.earned && achievement.earnedDate && (
+                  <p className="text-xs text-yellow-600 mt-1">
+                    Earned {achievement.earnedDate}
+                  </p>
+                )}
+                {!achievement.earned && achievement.progress !== undefined && (
+                  <div className="mt-2">
+                    <div className="w-full bg-gray-200 rounded-full h-1">
+                      <div 
+                        className="bg-pink-500 h-1 rounded-full" 
+                        style={{ width: `${(achievement.progress / 100) * 100}%` }}
+                      ></div>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Progress: {achievement.progress}
+                    </p>
+                  </div>
                 )}
               </div>
             ))}
@@ -279,7 +394,7 @@ export default function ProfileScreen({ currentUser }) {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
-            <Settings className="w-5 h-5 text-gray-500" />
+            <Settings className="w-5 h-5" />
             <span>Account Settings</span>
           </CardTitle>
         </CardHeader>
@@ -297,48 +412,54 @@ export default function ProfileScreen({ currentUser }) {
             Payment Methods
           </Button>
           <Button variant="ghost" className="w-full justify-start">
-            <MapPin className="w-4 h-4 mr-3" />
+            <Address className="w-4 h-4 mr-3" />
             Shipping Addresses
           </Button>
         </CardContent>
       </Card>
 
-      {/* Account Info */}
+      {/* Style Insights */}
       <Card>
-        <CardContent className="pt-6">
-          <div className="space-y-2 text-sm text-gray-600">
-            <div className="flex items-center justify-between">
-              <span>Member since</span>
-              <span>{new Date(userStats.joinedDate).toLocaleDateString()}</span>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <TrendingUp className="w-5 h-5 text-pink-500" />
+            <span>Style Insights</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Favorite Style</span>
+              <Badge variant="outline">{userStats?.favoriteStyle || 'Casual Chic'}</Badge>
             </div>
-            <div className="flex items-center justify-between">
-              <span>Favorite style</span>
-              <span>{userStats.favoriteStyle}</span>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Style Level</span>
+              <Badge className="bg-gradient-to-r from-pink-500 to-purple-600">
+                {userStats?.level || 'Style Expert'}
+              </Badge>
             </div>
-            <div className="flex items-center justify-between">
-              <span>Market</span>
-              <span>{currentUser.market === 'US' ? 'United States' : 'India'}</span>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Time Saved This Month</span>
+              <span className="text-sm font-medium text-green-600">
+                {userStats?.timesSaved || 156} minutes
+              </span>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Logout */}
-      <Card className="border-red-200">
-        <CardContent className="pt-6">
-          <Button 
-            variant="outline" 
-            className="w-full text-red-600 border-red-200 hover:bg-red-50"
-            onClick={handleLogout}
-          >
-            <LogOut className="w-4 h-4 mr-2" />
-            Sign Out
-          </Button>
-        </CardContent>
-      </Card>
+      {/* Logout Button */}
+      <Button
+        variant="outline"
+        onClick={handleLogout}
+        className="w-full text-red-600 border-red-200 hover:bg-red-50"
+      >
+        <LogOut className="w-4 h-4 mr-2" />
+        Sign Out
+      </Button>
 
       {/* WS1 Integration Status */}
-      <div className="text-center pb-4">
+      <div className="text-center">
         <Badge variant="outline" className="text-xs">
           🔗 WS1: User Management Integration Active
         </Badge>

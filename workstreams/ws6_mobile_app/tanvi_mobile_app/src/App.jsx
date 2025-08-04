@@ -22,6 +22,9 @@ import {
 } from 'lucide-react'
 import './App.css'
 
+// Import authentication provider and hook
+import { AuthProvider, useAuth } from './hooks/useAuth'
+
 // Import all phase components
 import HomeScreen from './components/HomeScreen'
 import AuthScreen from './components/AuthScreen'
@@ -37,18 +40,17 @@ import CheckoutScreen from './components/CheckoutScreen'
 import OrdersScreen from './components/OrdersScreen'
 import AnalyticsScreen from './components/AnalyticsScreen'
 
-function App() {
-  const [currentUser, setCurrentUser] = useState(null)
+function AppContent() {
+  const { user, isLoading, isAuthenticated } = useAuth()
   const [currentMarket, setCurrentMarket] = useState('US')
   const [activeTab, setActiveTab] = useState('home')
-  const [isLoading, setIsLoading] = useState(true)
 
+  // Update market when user changes
   useEffect(() => {
-    // Simulate app initialization
-    setTimeout(() => {
-      setIsLoading(false)
-    }, 2000)
-  }, [])
+    if (user && user.market) {
+      setCurrentMarket(user.market)
+    }
+  }, [user])
 
   if (isLoading) {
     return <LoadingScreen />
@@ -75,9 +77,11 @@ function App() {
               <Badge variant="outline" className="text-xs">
                 {currentMarket === 'US' ? '🇺🇸 USA' : '🇮🇳 India'}
               </Badge>
-              <Button variant="ghost" size="sm">
-                <Bell className="w-4 h-4" />
-              </Button>
+              {isAuthenticated && (
+                <Button variant="ghost" size="sm">
+                  <Bell className="w-4 h-4" />
+                </Button>
+              )}
             </div>
           </div>
         </header>
@@ -85,64 +89,118 @@ function App() {
         {/* Main Content */}
         <main className="max-w-md mx-auto pb-20">
           <Routes>
-            <Route path="/" element={<HomeScreen currentUser={currentUser} currentMarket={currentMarket} />} />
-            <Route path="/auth" element={<AuthScreen setCurrentUser={setCurrentUser} />} />
-            <Route path="/profile" element={<ProfileScreen currentUser={currentUser} />} />
-            <Route path="/ai-style" element={<AIStyleScreen currentUser={currentUser} />} />
-            <Route path="/camera" element={<CameraScreen currentUser={currentUser} />} />
-            <Route path="/wardrobe" element={<WardrobeScreen currentUser={currentUser} />} />
-            <Route path="/social" element={<SocialScreen currentUser={currentUser} />} />
-            <Route path="/community" element={<CommunityScreen currentUser={currentUser} />} />
-            <Route path="/shop" element={<ShopScreen currentMarket={currentMarket} />} />
-            <Route path="/cart" element={<CartScreen currentUser={currentUser} />} />
-            <Route path="/checkout" element={<CheckoutScreen currentUser={currentUser} />} />
-            <Route path="/orders" element={<OrdersScreen currentUser={currentUser} />} />
-            <Route path="/analytics" element={<AnalyticsScreen />} />
+            <Route path="/" element={
+              isAuthenticated ? 
+                <HomeScreen currentUser={user} currentMarket={currentMarket} /> : 
+                <Navigate to="/auth" replace />
+            } />
+            <Route path="/auth" element={
+              !isAuthenticated ? 
+                <AuthScreen /> : 
+                <Navigate to="/" replace />
+            } />
+            <Route path="/profile" element={
+              isAuthenticated ? 
+                <ProfileScreen currentUser={user} /> : 
+                <Navigate to="/auth" replace />
+            } />
+            <Route path="/ai-style" element={
+              isAuthenticated ? 
+                <AIStyleScreen currentUser={user} /> : 
+                <Navigate to="/auth" replace />
+            } />
+            <Route path="/camera" element={
+              isAuthenticated ? 
+                <CameraScreen currentUser={user} /> : 
+                <Navigate to="/auth" replace />
+            } />
+            <Route path="/wardrobe" element={
+              isAuthenticated ? 
+                <WardrobeScreen currentUser={user} /> : 
+                <Navigate to="/auth" replace />
+            } />
+            <Route path="/social" element={
+              isAuthenticated ? 
+                <SocialScreen currentUser={user} /> : 
+                <Navigate to="/auth" replace />
+            } />
+            <Route path="/community" element={
+              isAuthenticated ? 
+                <CommunityScreen currentUser={user} /> : 
+                <Navigate to="/auth" replace />
+            } />
+            <Route path="/shop" element={
+              isAuthenticated ? 
+                <ShopScreen currentMarket={currentMarket} /> : 
+                <Navigate to="/auth" replace />
+            } />
+            <Route path="/cart" element={
+              isAuthenticated ? 
+                <CartScreen currentUser={user} /> : 
+                <Navigate to="/auth" replace />
+            } />
+            <Route path="/checkout" element={
+              isAuthenticated ? 
+                <CheckoutScreen currentUser={user} /> : 
+                <Navigate to="/auth" replace />
+            } />
+            <Route path="/orders" element={
+              isAuthenticated ? 
+                <OrdersScreen currentUser={user} /> : 
+                <Navigate to="/auth" replace />
+            } />
+            <Route path="/analytics" element={
+              isAuthenticated ? 
+                <AnalyticsScreen /> : 
+                <Navigate to="/auth" replace />
+            } />
           </Routes>
         </main>
 
-        {/* Bottom Navigation */}
-        <nav className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-pink-200">
-          <div className="max-w-md mx-auto px-4 py-2">
-            <div className="flex justify-around">
-              <NavButton 
-                icon={Home} 
-                label="Home" 
-                isActive={activeTab === 'home'}
-                onClick={() => setActiveTab('home')}
-                to="/"
-              />
-              <NavButton 
-                icon={Camera} 
-                label="Style" 
-                isActive={activeTab === 'style'}
-                onClick={() => setActiveTab('style')}
-                to="/ai-style"
-              />
-              <NavButton 
-                icon={ShoppingBag} 
-                label="Shop" 
-                isActive={activeTab === 'shop'}
-                onClick={() => setActiveTab('shop')}
-                to="/shop"
-              />
-              <NavButton 
-                icon={Users} 
-                label="Social" 
-                isActive={activeTab === 'social'}
-                onClick={() => setActiveTab('social')}
-                to="/social"
-              />
-              <NavButton 
-                icon={User} 
-                label="Profile" 
-                isActive={activeTab === 'profile'}
-                onClick={() => setActiveTab('profile')}
-                to="/profile"
-              />
+        {/* Bottom Navigation - Only show when authenticated */}
+        {isAuthenticated && (
+          <nav className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-pink-200">
+            <div className="max-w-md mx-auto px-4 py-2">
+              <div className="flex justify-around">
+                <NavButton 
+                  icon={Home} 
+                  label="Home" 
+                  isActive={activeTab === 'home'}
+                  onClick={() => setActiveTab('home')}
+                  to="/"
+                />
+                <NavButton 
+                  icon={Camera} 
+                  label="Style" 
+                  isActive={activeTab === 'style'}
+                  onClick={() => setActiveTab('style')}
+                  to="/ai-style"
+                />
+                <NavButton 
+                  icon={ShoppingBag} 
+                  label="Shop" 
+                  isActive={activeTab === 'shop'}
+                  onClick={() => setActiveTab('shop')}
+                  to="/shop"
+                />
+                <NavButton 
+                  icon={Users} 
+                  label="Social" 
+                  isActive={activeTab === 'social'}
+                  onClick={() => setActiveTab('social')}
+                  to="/social"
+                />
+                <NavButton 
+                  icon={User} 
+                  label="Profile" 
+                  isActive={activeTab === 'profile'}
+                  onClick={() => setActiveTab('profile')}
+                  to="/profile"
+                />
+              </div>
             </div>
-          </div>
-        </nav>
+          </nav>
+        )}
       </div>
     </Router>
   )
@@ -181,6 +239,15 @@ function NavButton({ icon: Icon, label, isActive, onClick, to }) {
         <span className="text-xs font-medium">{label}</span>
       </div>
     </a>
+  )
+}
+
+// Main App component with AuthProvider
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   )
 }
 

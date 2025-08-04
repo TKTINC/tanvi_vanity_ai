@@ -11,7 +11,7 @@ from src.routes.user import user_bp
 from src.models.social_models import SocialProfile, SocialConnection, StyleInfluencer, SocialNotification, SocialActivity
 from src.models.content_sharing import StylePost, PostComment, PostLike, PostShare, PostSave, StyleChallenge, ContentCollection, CollectionItem
 from src.routes.social_foundation import social_foundation_bp
-from src.routes.community_features import community_features_bp
+from src.routes.style_inspiration import style_inspiration_bp
 
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
 app.config['SECRET_KEY'] = 'asdf#FGSgvasgf$5$WGT'
@@ -21,7 +21,7 @@ CORS(app)
 
 app.register_blueprint(user_bp, url_prefix='/api')
 app.register_blueprint(social_foundation_bp, url_prefix='/api/social')
-app.register_blueprint(community_features_bp, url_prefix='/api/community')
+app.register_blueprint(style_inspiration_bp, url_prefix='/api/inspiration')
 
 # uncomment if you need to use database
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(os.path.dirname(__file__), 'database', 'app.db')}"
@@ -36,8 +36,8 @@ def health_check():
     return jsonify({
         'status': 'healthy',
         'service': 'WS4 Social Integration',
-        'version': '3.0.0',
-        'phase': 'WS4-P3: Community Features & Engagement',
+        'version': '4.0.0',
+        'phase': 'WS4-P4: Style Inspiration & Discovery',
         'tagline': 'We girls have no time - instant style content creation!',
         'timestamp': datetime.utcnow().isoformat()
     })
@@ -94,7 +94,12 @@ def service_info():
             'EventRSVP': 'Event RSVP tracking',
             'StyleMentor': 'Style mentors and coaching',
             'MentorshipRelationship': 'Mentorship relationships',
-            'StyleTip': 'Daily style tips and advice'
+            'StyleTip': 'Daily style tips and advice',
+            'StyleInspiration': 'Style inspiration posts and content',
+            'TrendAnalysis': 'Fashion trend analysis and tracking',
+            'PersonalizedFeed': 'Personalized style inspiration feeds',
+            'StyleMoodboard': 'User-created style moodboards',
+            'StyleRecommendation': 'AI-generated style recommendations'
         },
         'integration_status': {
             'ws1_user_management': 'ready',
@@ -105,7 +110,10 @@ def service_info():
             'engagement_tracking': 'active',
             'community_features': 'active',
             'style_events': 'active',
-            'mentoring_system': 'active'
+            'mentoring_system': 'active',
+            'style_inspiration': 'active',
+            'trend_analysis': 'active',
+            'personalized_discovery': 'active'
         },
         'features': {
             'social_profiles': 'Complete social profile management',
@@ -122,17 +130,24 @@ def service_info():
             'community_events': 'Style events and meetups',
             'style_mentoring': 'Professional style mentoring and coaching',
             'daily_tips': 'Daily style tips and advice',
-            'community_management': 'Complete community administration'
+            'community_management': 'Complete community administration',
+            'style_inspiration': 'Curated style inspiration and discovery',
+            'trend_analysis': 'Real-time fashion trend tracking',
+            'personalized_feeds': 'AI-powered personalized discovery',
+            'style_moodboards': 'Visual style mood creation tools',
+            'ai_recommendations': 'Intelligent style recommendations'
         },
         'performance': {
             'response_time': '<1 second for all operations',
             'authentication': 'JWT token-based with WS1 integration',
-            'database': 'SQLite with 20 optimized models',
+            'database': 'SQLite with 25 optimized models',
             'caching': 'Ready for Redis integration',
             'content_processing': 'AI-powered analysis and scoring',
             'engagement_tracking': 'Real-time metrics and analytics',
             'community_management': 'Scalable community features',
-            'event_management': 'Real-time event coordination'
+            'event_management': 'Real-time event coordination',
+            'inspiration_discovery': 'Instant style inspiration feeds',
+            'trend_analysis': 'Real-time trend tracking and prediction'
         },
         'timestamp': datetime.utcnow().isoformat()
     })

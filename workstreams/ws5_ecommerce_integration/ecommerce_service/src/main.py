@@ -10,6 +10,7 @@ from src.routes.ecommerce_foundation import ecommerce_bp
 from src.routes.product_catalog import product_catalog_bp
 from src.routes.merchant_integration import merchant_integration_bp
 from src.routes.payment_processing import payment_processing_bp
+from src.routes.shopping_checkout import shopping_checkout_bp
 
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
 app.config['SECRET_KEY'] = 'tanvi_ecommerce_secret_key_2024'
@@ -22,6 +23,7 @@ app.register_blueprint(ecommerce_bp, url_prefix='/api')
 app.register_blueprint(product_catalog_bp, url_prefix='/api')
 app.register_blueprint(merchant_integration_bp, url_prefix='/api')
 app.register_blueprint(payment_processing_bp, url_prefix='/api')
+app.register_blueprint(shopping_checkout_bp, url_prefix='/api')
 
 # Database configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(os.path.dirname(__file__), 'database', 'app.db')}"

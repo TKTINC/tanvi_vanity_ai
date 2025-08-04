@@ -8,10 +8,12 @@ from flask_cors import CORS
 from src.models.user import db
 from src.models.profile import StyleProfile, WardrobeItem, OutfitHistory, QuickStyleQuiz
 from src.models.analytics import UserAnalytics, StyleInsights, UsagePattern, PersonalizationScore
+from src.models.security import SecurityAuditLog, UserPrivacySettings, DataAccessLog, UserSecuritySettings, DataExportRequest
 from src.routes.user import user_bp
 from src.routes.auth import auth_bp
 from src.routes.profile import profile_bp
 from src.routes.analytics import analytics_bp
+from src.routes.security import security_bp
 
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
 
@@ -28,6 +30,7 @@ app.register_blueprint(auth_bp, url_prefix='/api/auth')
 app.register_blueprint(user_bp, url_prefix='/api')
 app.register_blueprint(profile_bp, url_prefix='/api/profile')
 app.register_blueprint(analytics_bp, url_prefix='/api/analytics')
+app.register_blueprint(security_bp, url_prefix='/api/security')
 
 # Initialize database
 db.init_app(app)
@@ -43,14 +46,15 @@ def health_check():
     return jsonify({
         'status': 'healthy',
         'service': 'Tanvi Vanity Agent - User Management',
-        'tagline': 'We girls have no time - system is running fast!',
+        'tagline': 'We girls have no time - system is running fast and secure!',
         'version': '1.0.0',
-        'phase': 'WS1-P3: Advanced User Analytics',
+        'phase': 'WS1-P4: Security & Privacy Controls',
         'endpoints': {
             'auth': '/api/auth/*',
             'users': '/api/*',
             'profiles': '/api/profile/*',
             'analytics': '/api/analytics/*',
+            'security': '/api/security/*',
             'health': '/api/health'
         }
     }), 200
@@ -63,16 +67,18 @@ def service_info():
     return jsonify({
         'service_name': 'User Management Service',
         'tagline': 'We girls have no time - quick user management for busy lifestyles!',
-        'description': 'Authentication, profile management, and advanced analytics for Tanvi Vanity Agent',
+        'description': 'Authentication, profile management, advanced analytics, and security controls for Tanvi Vanity Agent',
         'workstream': 'WS1: User Management & Authentication',
-        'phase': 'P3: Advanced User Analytics',
+        'phase': 'P4: Security & Privacy Controls',
         'new_features': [
-            'Real-time user behavior analytics',
-            'AI-generated style insights and recommendations',
-            'Usage pattern recognition and optimization',
-            'Dynamic personalization scoring',
-            'Quick activity summaries and dashboards',
-            'Intelligent user action tracking'
+            'Comprehensive privacy settings with simple controls',
+            'Advanced security settings and monitoring',
+            'Complete security audit logging',
+            'Data access transparency logs',
+            'GDPR-compliant data export system',
+            'Account deletion with grace period',
+            'Automated suspicious activity detection',
+            'Device fingerprinting and tracking'
         ],
         'api_endpoints': {
             # Authentication endpoints (from P1)
@@ -105,88 +111,108 @@ def service_info():
             'POST /api/profile/outfit-history': 'Log new outfit',
             'POST /api/profile/outfit-history/<id>/rate': 'Rate outfit for AI learning',
             
-            # Advanced analytics endpoints (NEW in P3)
+            # Advanced analytics endpoints (from P3)
             'GET /api/analytics/dashboard': 'Get analytics dashboard overview',
             'GET /api/analytics/insights': 'Get AI-generated style insights',
             'POST /api/analytics/insights/<id>/action': 'Interact with style insight',
             'GET /api/analytics/patterns': 'Get usage patterns and behaviors',
             'GET /api/analytics/personalization': 'Get personalization score and recommendations',
             'GET /api/analytics/activity-summary': 'Get activity summary for date range',
-            'POST /api/analytics/track-action': 'Track user action for analytics'
+            'POST /api/analytics/track-action': 'Track user action for analytics',
+            
+            # Security & Privacy endpoints (NEW in P4)
+            'GET /api/security/privacy-settings': 'Get privacy settings and controls',
+            'PUT /api/security/privacy-settings': 'Update privacy settings',
+            'GET /api/security/security-settings': 'Get security settings and controls',
+            'PUT /api/security/security-settings': 'Update security settings',
+            'GET /api/security/audit-log': 'Get security audit log for transparency',
+            'GET /api/security/data-access-log': 'Get data access log for transparency',
+            'POST /api/security/export-data': 'Request GDPR data export',
+            'GET /api/security/export-data/<id>': 'Get data export status',
+            'GET /api/security/download-data/<token>': 'Download exported data',
+            'POST /api/security/delete-account': 'Request account deletion'
         }
     }), 200
 
 @app.route('/api/features', methods=['GET'])
 def feature_overview():
     """
-    Overview of WS1-P3 advanced analytics features
+    Overview of WS1-P4 security and privacy features
     """
     return jsonify({
-        'phase': 'WS1-P3: Advanced User Analytics',
-        'tagline': 'We girls have no time - intelligent insights made instant!',
+        'phase': 'WS1-P4: Security & Privacy Controls',
+        'tagline': 'We girls have no time - security and privacy made simple!',
         'key_features': {
-            'real_time_analytics': {
-                'description': 'Live tracking of user behavior and engagement',
+            'privacy_controls': {
+                'description': 'Simple privacy settings with clear explanations',
                 'benefits': [
-                    'Daily activity monitoring',
-                    'Session duration tracking',
-                    'Feature usage analytics',
-                    'Peak usage time identification'
+                    'Granular visibility controls for all data types',
+                    'Smart defaults that protect privacy',
+                    'One-click privacy level changes',
+                    'Clear explanations of what each setting does'
                 ],
-                'response_time': 'Real-time updates'
+                'setup_time': '2 minutes for full privacy review'
             },
-            'ai_style_insights': {
-                'description': 'AI-generated personalized style recommendations',
+            'security_monitoring': {
+                'description': 'Advanced security with automated monitoring',
                 'benefits': [
-                    'Wardrobe gap analysis',
-                    'Style evolution tracking',
-                    'Seasonal recommendations',
-                    'Actionable styling tips'
+                    'Real-time suspicious activity detection',
+                    'Automatic account locking after failed attempts',
+                    'Device fingerprinting and tracking',
+                    'Comprehensive security event logging'
                 ],
-                'response_time': 'Generated in seconds'
+                'response_time': 'Instant threat detection'
             },
-            'usage_patterns': {
-                'description': 'Intelligent pattern recognition for UX optimization',
+            'data_transparency': {
+                'description': 'Complete transparency into data access and usage',
                 'benefits': [
-                    'Morning vs evening usage patterns',
-                    'Weekend planning behaviors',
-                    'Feature preference identification',
-                    'Optimization suggestions'
+                    'Real-time data access logging',
+                    'Clear audit trail of all security events',
+                    'Easy-to-understand access summaries',
+                    'Automated compliance tracking'
                 ],
-                'response_time': 'Instant pattern analysis'
+                'visibility': 'Every data access logged and visible'
             },
-            'personalization_scoring': {
-                'description': 'Dynamic scoring for adaptive user experience',
+            'gdpr_compliance': {
+                'description': 'Full GDPR compliance with user-friendly tools',
                 'benefits': [
-                    'Profile completeness tracking',
-                    'Engagement level monitoring',
-                    'Satisfaction measurement',
-                    'UX adaptation recommendations'
+                    'One-click data export in multiple formats',
+                    'Right to be forgotten with grace period',
+                    'Consent management with version tracking',
+                    'Automated data retention policies'
                 ],
-                'response_time': 'Live score updates'
+                'export_time': '5-10 minutes for complete data export'
             },
-            'quick_dashboards': {
-                'description': 'Instant overview of user activity and insights',
+            'user_control': {
+                'description': 'Complete user control over data and security',
                 'benefits': [
-                    '7-day activity summaries',
-                    'Key metrics at a glance',
-                    'Priority insights display',
-                    'Personalization recommendations'
+                    'Flexible session management',
+                    'Customizable security notifications',
+                    'Data retention preferences',
+                    'Third-party integration controls'
                 ],
-                'response_time': 'Sub-second loading'
+                'customization': 'Every security aspect is user-configurable'
             }
         },
-        'intelligence_features': {
-            'predictive_insights': 'AI predicts wardrobe needs and style evolution',
-            'behavioral_adaptation': 'System adapts to user preferences automatically',
-            'smart_recommendations': 'Context-aware suggestions based on usage patterns',
-            'efficiency_optimization': 'Identifies ways to save user time'
+        'security_features': {
+            'audit_logging': 'Every security event is logged with full context',
+            'data_access_tracking': 'Complete transparency into who accessed what data when',
+            'privacy_by_design': 'Privacy-first approach with secure defaults',
+            'compliance_ready': 'GDPR, CCPA, and other privacy regulation compliance',
+            'user_empowerment': 'Users have complete control over their data and privacy'
+        },
+        'privacy_levels': {
+            'private': 'Data visible only to the user (default)',
+            'friends': 'Data visible to approved connections',
+            'public': 'Data visible to all users',
+            'anonymous': 'Data used anonymously for improvements'
         },
         'integration_ready': [
-            'WS2: AI-Powered Styling Engine (analytics data ready)',
-            'WS3: Computer Vision & Wardrobe (usage patterns ready)',
-            'WS4: Social Integration (engagement metrics ready)',
-            'WS6: Mobile Application & UX (personalization scores ready)'
+            'WS2: AI-Powered Styling Engine (privacy-compliant AI training)',
+            'WS3: Computer Vision & Wardrobe (secure image processing)',
+            'WS4: Social Integration (privacy-controlled social features)',
+            'WS5: E-commerce Integration (secure payment and data handling)',
+            'WS6: Mobile Application & UX (privacy-first mobile experience)'
         ]
     }), 200
 
@@ -217,15 +243,17 @@ def serve(path):
     if static_folder_path is None:
         return jsonify({
             'service': 'Tanvi Vanity Agent - User Management API',
-            'tagline': 'We girls have no time - this is the intelligent API service!',
+            'tagline': 'We girls have no time - this is the secure and intelligent API service!',
             'message': 'This is a backend API service. Use /api/info for endpoint information.',
-            'phase': 'WS1-P3: Advanced User Analytics',
+            'phase': 'WS1-P4: Security & Privacy Controls',
             'new_capabilities': [
-                'Real-time behavior analytics',
-                'AI-generated style insights',
-                'Usage pattern recognition',
-                'Dynamic personalization scoring'
+                'Comprehensive privacy controls',
+                'Advanced security monitoring',
+                'Data access transparency',
+                'GDPR-compliant data export',
+                'User-controlled account deletion'
             ],
+            'security_note': 'All data is protected with enterprise-grade security and privacy controls',
             'frontend_note': 'Frontend will be served from the mobile app workstream'
         }), 200
 
@@ -238,22 +266,23 @@ def serve(path):
         else:
             return jsonify({
                 'service': 'Tanvi Vanity Agent - User Management API',
-                'tagline': 'We girls have no time - this is the intelligent API service!',
+                'tagline': 'We girls have no time - this is the secure and intelligent API service!',
                 'message': 'This is a backend API service. Use /api/info for endpoint information.',
-                'phase': 'WS1-P3: Advanced User Analytics'
+                'phase': 'WS1-P4: Security & Privacy Controls'
             }), 200
 
 
 if __name__ == '__main__':
     print("🌟 Starting Tanvi Vanity Agent - User Management Service")
     print("💫 Tagline: 'We girls have no time' - Quick user management for busy lifestyles!")
-    print("🚀 Phase: WS1-P3 Advanced User Analytics")
-    print("🧠 New Features: Real-time analytics, AI insights, usage patterns, personalization scoring")
-    print("📊 Intelligence: Predictive insights, behavioral adaptation, smart recommendations")
+    print("🚀 Phase: WS1-P4 Security & Privacy Controls")
+    print("🔒 New Features: Privacy controls, security monitoring, data transparency, GDPR compliance")
+    print("🛡️ Security: Advanced threat detection, audit logging, user empowerment")
     print("🚀 Service running on http://0.0.0.0:5001")
     print("📚 API documentation: http://0.0.0.0:5001/api/info")
     print("🎯 Feature overview: http://0.0.0.0:5001/api/features")
     print("📊 Analytics dashboard: http://0.0.0.0:5001/api/analytics/dashboard")
+    print("🔒 Privacy settings: http://0.0.0.0:5001/api/security/privacy-settings")
     
     app.run(host='0.0.0.0', port=5001, debug=True)
 

@@ -9,7 +9,9 @@ from flask_cors import CORS
 from src.models.user import db
 from src.routes.user import user_bp
 from src.models.social_models import SocialProfile, SocialConnection, StyleInfluencer, SocialNotification, SocialActivity
+from src.models.content_sharing import StylePost, PostComment, PostLike, PostShare, PostSave, StyleChallenge, ContentCollection, CollectionItem
 from src.routes.social_foundation import social_foundation_bp
+from src.routes.content_sharing import content_sharing_bp
 
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
 app.config['SECRET_KEY'] = 'asdf#FGSgvasgf$5$WGT'
@@ -19,6 +21,7 @@ CORS(app)
 
 app.register_blueprint(user_bp, url_prefix='/api')
 app.register_blueprint(social_foundation_bp, url_prefix='/api/social')
+app.register_blueprint(content_sharing_bp, url_prefix='/api/content')
 
 # uncomment if you need to use database
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(os.path.dirname(__file__), 'database', 'app.db')}"
@@ -33,9 +36,9 @@ def health_check():
     return jsonify({
         'status': 'healthy',
         'service': 'WS4 Social Integration',
-        'version': '1.0.0',
-        'phase': 'WS4-P1: Social Foundation & User Connections',
-        'tagline': 'We girls have no time - instant social connections!',
+        'version': '2.0.0',
+        'phase': 'WS4-P2: Content Sharing & Style Posts',
+        'tagline': 'We girls have no time - instant style content creation!',
         'timestamp': datetime.utcnow().isoformat()
     })
 
@@ -60,32 +63,59 @@ def service_info():
             'following': 'GET /api/social/following',
             'notifications': 'GET /api/social/notifications',
             'mark_read': 'POST /api/social/notifications/<id>/read',
-            'influencers': 'GET /api/social/influencers'
+            'influencers': 'GET /api/social/influencers',
+            'content_health': 'GET /api/content/health',
+            'posts': 'GET/POST /api/content/posts',
+            'post_detail': 'GET /api/content/posts/<id>',
+            'like_post': 'POST /api/content/posts/<id>/like',
+            'comment_post': 'POST /api/content/posts/<id>/comment',
+            'share_post': 'POST /api/content/posts/<id>/share',
+            'save_post': 'POST /api/content/posts/<id>/save',
+            'challenges': 'GET/POST /api/content/challenges',
+            'collections': 'GET/POST /api/content/collections'
         },
         'database_models': {
             'SocialProfile': 'User social profiles with style preferences',
             'SocialConnection': 'User connections and relationships',
             'StyleInfluencer': 'Style influencers and fashion experts',
             'SocialNotification': 'Social notifications and updates',
-            'SocialActivity': 'Social activity tracking and analytics'
+            'SocialActivity': 'Social activity tracking and analytics',
+            'StylePost': 'Style posts and outfit sharing',
+            'PostComment': 'Comments on style posts',
+            'PostLike': 'Likes on posts and comments',
+            'PostShare': 'Post sharing and distribution',
+            'PostSave': 'Saved posts and collections',
+            'StyleChallenge': 'Style challenges and trends',
+            'ContentCollection': 'User content collections',
+            'CollectionItem': 'Items within collections'
         },
         'integration_status': {
             'ws1_user_management': 'ready',
             'ws2_ai_styling': 'ready',
-            'ws3_computer_vision': 'ready'
+            'ws3_computer_vision': 'ready',
+            'content_sharing': 'active',
+            'style_posts': 'active',
+            'engagement_tracking': 'active'
         },
         'features': {
             'social_profiles': 'Complete social profile management',
             'user_connections': 'Follow/unfollow with style compatibility',
-            'style_influencers': 'Curated style influencers and experts',
+            'style_influencers': 'Curated fashion experts and style guides',
             'notifications': 'Real-time social notifications',
-            'activity_tracking': 'Comprehensive social activity analytics'
+            'activity_tracking': 'Comprehensive social analytics',
+            'style_posts': 'Outfit sharing and style content creation',
+            'post_engagement': 'Likes, comments, shares, and saves',
+            'style_challenges': 'Community style challenges and trends',
+            'content_collections': 'Organized style content collections',
+            'ai_analysis': 'AI-powered content analysis and scoring'
         },
         'performance': {
             'response_time': '<1 second for all operations',
             'authentication': 'JWT token-based with WS1 integration',
-            'database': 'SQLite with 5 optimized models',
-            'caching': 'Ready for Redis integration'
+            'database': 'SQLite with 13 optimized models',
+            'caching': 'Ready for Redis integration',
+            'content_processing': 'AI-powered analysis and scoring',
+            'engagement_tracking': 'Real-time metrics and analytics'
         },
         'timestamp': datetime.utcnow().isoformat()
     })

@@ -11,7 +11,7 @@ from src.routes.user import user_bp
 from src.models.social_models import SocialProfile, SocialConnection, StyleInfluencer, SocialNotification, SocialActivity
 from src.models.content_sharing import StylePost, PostComment, PostLike, PostShare, PostSave, StyleChallenge, ContentCollection, CollectionItem
 from src.routes.social_foundation import social_foundation_bp
-from src.routes.content_sharing import content_sharing_bp
+from src.routes.community_features import community_features_bp
 
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
 app.config['SECRET_KEY'] = 'asdf#FGSgvasgf$5$WGT'
@@ -21,7 +21,7 @@ CORS(app)
 
 app.register_blueprint(user_bp, url_prefix='/api')
 app.register_blueprint(social_foundation_bp, url_prefix='/api/social')
-app.register_blueprint(content_sharing_bp, url_prefix='/api/content')
+app.register_blueprint(community_features_bp, url_prefix='/api/community')
 
 # uncomment if you need to use database
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(os.path.dirname(__file__), 'database', 'app.db')}"
@@ -36,8 +36,8 @@ def health_check():
     return jsonify({
         'status': 'healthy',
         'service': 'WS4 Social Integration',
-        'version': '2.0.0',
-        'phase': 'WS4-P2: Content Sharing & Style Posts',
+        'version': '3.0.0',
+        'phase': 'WS4-P3: Community Features & Engagement',
         'tagline': 'We girls have no time - instant style content creation!',
         'timestamp': datetime.utcnow().isoformat()
     })
@@ -87,7 +87,14 @@ def service_info():
             'PostSave': 'Saved posts and collections',
             'StyleChallenge': 'Style challenges and trends',
             'ContentCollection': 'User content collections',
-            'CollectionItem': 'Items within collections'
+            'CollectionItem': 'Items within collections',
+            'StyleCommunity': 'Style communities and groups',
+            'CommunityMembership': 'Community membership tracking',
+            'StyleEvent': 'Style events and meetups',
+            'EventRSVP': 'Event RSVP tracking',
+            'StyleMentor': 'Style mentors and coaching',
+            'MentorshipRelationship': 'Mentorship relationships',
+            'StyleTip': 'Daily style tips and advice'
         },
         'integration_status': {
             'ws1_user_management': 'ready',
@@ -95,7 +102,10 @@ def service_info():
             'ws3_computer_vision': 'ready',
             'content_sharing': 'active',
             'style_posts': 'active',
-            'engagement_tracking': 'active'
+            'engagement_tracking': 'active',
+            'community_features': 'active',
+            'style_events': 'active',
+            'mentoring_system': 'active'
         },
         'features': {
             'social_profiles': 'Complete social profile management',
@@ -107,15 +117,22 @@ def service_info():
             'post_engagement': 'Likes, comments, shares, and saves',
             'style_challenges': 'Community style challenges and trends',
             'content_collections': 'Organized style content collections',
-            'ai_analysis': 'AI-powered content analysis and scoring'
+            'ai_analysis': 'AI-powered content analysis and scoring',
+            'style_communities': 'Style communities and groups',
+            'community_events': 'Style events and meetups',
+            'style_mentoring': 'Professional style mentoring and coaching',
+            'daily_tips': 'Daily style tips and advice',
+            'community_management': 'Complete community administration'
         },
         'performance': {
             'response_time': '<1 second for all operations',
             'authentication': 'JWT token-based with WS1 integration',
-            'database': 'SQLite with 13 optimized models',
+            'database': 'SQLite with 20 optimized models',
             'caching': 'Ready for Redis integration',
             'content_processing': 'AI-powered analysis and scoring',
-            'engagement_tracking': 'Real-time metrics and analytics'
+            'engagement_tracking': 'Real-time metrics and analytics',
+            'community_management': 'Scalable community features',
+            'event_management': 'Real-time event coordination'
         },
         'timestamp': datetime.utcnow().isoformat()
     })
